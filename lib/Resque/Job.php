@@ -196,13 +196,16 @@ class Resque_Job
 
             $instance = $this->getInstance();
             if(method_exists($instance, 'setUpForResque')) {
-                $instance->setUp();
+                $instance->setUpForResque();
             }
 
-            $instance->perform();
+            // $this->args() is not work when instance on phalcon flamework.
+            // So add argument in perform method.
+            $args = isset($this->payload['args']) ? array_shift($this->payload['args']) : array();
+            $instance->perform($args);
 
             if(method_exists($instance, 'tearDownForResque')) {
-                $instance->tearDown();
+                $instance->tearDownForResque();
             }
 
             Resque_Event::trigger('afterPerform', $this);
