@@ -195,13 +195,13 @@ class Resque_Job
 			Resque_Event::trigger('beforePerform', $this);
 
 			$instance = $this->getInstance();
-			if(method_exists($instance, 'setUp')) {
+			if(method_exists($instance, 'setUpForResque')) {
 				$instance->setUp();
 			}
 
 			$instance->perform();
 
-			if(method_exists($instance, 'tearDown')) {
+			if(method_exists($instance, 'tearDownForResque')) {
 				$instance->tearDown();
 			}
 
