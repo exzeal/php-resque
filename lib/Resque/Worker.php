@@ -50,11 +50,6 @@ class Resque_Worker
     private $child = null;
 
     /**
-     * @var boolean True if set process title.
-     */
-    private $isTitle = false;
-
-    /**
      * Instantiate a new worker, given a list of queues that it should be working
      * on. The list of queues should be supplied in the priority that they should
      * be checked for jobs (first come, first served)
@@ -65,7 +60,7 @@ class Resque_Worker
      *
      * @param string|array $queues String with a single queue name, array with multiple.
      */
-    public function __construct($queues, $isTitle = false)
+    public function __construct($queues)
     {
         $this->logger = new Resque_Log();
 
@@ -82,7 +77,6 @@ class Resque_Worker
         }
         $this->hostname = $hostname;
         $this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
-        $this->isTitle = $isTitle;
     }
 
     /**
@@ -332,15 +326,12 @@ class Resque_Worker
      */
     private function updateProcLine($status)
     {
-        if($this->isTitle)
-        {
-            $processTitle = 'resque-' . Resque::VERSION . ': ' . $status;
-            if(function_exists('cli_set_process_title')) {
-                cli_set_process_title($processTitle);
-            }
-            else if(function_exists('setproctitle')) {
-                setproctitle($processTitle);
-            }
+        $processTitle = 'resque-' . Resque::VERSION . ': ' . $status;
+        if(function_exists('cli_set_process_title')) {
+            cli_set_process_title($processTitle);
+        }
+        else if(function_exists('setproctitle')) {
+            setproctitle($processTitle);
         }
     }
 
