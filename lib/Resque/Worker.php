@@ -50,6 +50,11 @@ class Resque_Worker
     private $child = null;
 
     /**
+     * @var boolean True if this worker is debug-mode.
+     */
+    private $debug = false;
+
+    /**
      * Instantiate a new worker, given a list of queues that it should be working
      * on. The list of queues should be supplied in the priority that they should
      * be checked for jobs (first come, first served)
@@ -149,7 +154,6 @@ class Resque_Worker
     {
         $this->updateProcLine('Starting');
         $this->startup();
-
         while(true) {
             if($this->shutdown) {
                 break;
@@ -177,7 +181,7 @@ class Resque_Worker
                 if($blocking === false)
                 {
                     // If no job was found, we sleep for $interval before continuing and checking again
-                    $this->logger->log(Psr\Log\LogLevel::INFO, 'Sleeping for {interval}', array('interval' => $interval));
+                    if($this->debug) $this->logger->log(Psr\Log\LogLevel::INFO, 'Sleeping for {interval}', array('interval' => $interval));
                     if($this->paused) {
                         $this->updateProcLine('Paused');
                     }
@@ -272,7 +276,7 @@ class Resque_Worker
             }
         } else {
             foreach($queues as $queue) {
-                $this->logger->log(Psr\Log\LogLevel::INFO, 'Checking {queue} for jobs', array('queue' => $queue));
+                if($this->debug) $this->logger->log(Psr\Log\LogLevel::INFO, 'Checking {queue} for jobs', array('queue' => $queue));
                 $job = Resque_Job::reserve($queue);
                 if($job) {
                     $this->logger->log(Psr\Log\LogLevel::INFO, 'Found job on {queue}', array('queue' => $job->queue));
@@ -564,5 +568,15 @@ class Resque_Worker
     public function setLogger(Psr\Log\LoggerInterface $logger)
     {
         $this->logger = $logger;
+    }
+
+    /**
+     * debug-mode
+     *
+     * @param bool $debug
+     */
+    public function setDebug($debug)
+    {
+        $this->debug = $debug;
     }
 }
