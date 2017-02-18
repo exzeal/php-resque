@@ -193,6 +193,7 @@ class Resque_Worker
 
                     usleep($interval * 1000000);
                 }
+                pcntl_signal_dispatch();
                 continue;
             }
 
