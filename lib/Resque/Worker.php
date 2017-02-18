@@ -181,7 +181,9 @@ class Resque_Worker
                 if($blocking === false)
                 {
                     // If no job was found, we sleep for $interval before continuing and checking again
-                    if($this->debug) $this->logger->log(Psr\Log\LogLevel::INFO, 'Sleeping for {interval}', array('interval' => $interval));
+                    if($this->debug) {
+                        $this->logger->log(Psr\Log\LogLevel::INFO, 'Sleeping for {interval}', array('interval' => $interval));
+                    }
                     if($this->paused) {
                         $this->updateProcLine('Paused');
                     }
@@ -191,11 +193,10 @@ class Resque_Worker
 
                     usleep($interval * 1000000);
                 }
-
                 continue;
             }
 
-            $this->logger->log(Psr\Log\LogLevel::NOTICE, 'Starting work on {job}', array('job' => $job));
+            $this->logger->log(Psr\Log\LogLevel::INFO, 'Starting work on {job}', array('job' => $job));
             Resque_Event::trigger('beforeFork', $job);
             $this->workingOn($job);
 
@@ -247,13 +248,13 @@ class Resque_Worker
             $job->perform();
         }
         catch(Exception $e) {
-            $this->logger->log(Psr\Log\LogLevel::CRITICAL, '{job} has failed {stack}', array('job' => $job, 'stack' => $e->getMessage()));
+            $this->logger->log(Psr\Log\LogLevel::ERROR, '{job} has failed {stack}', array('job' => $job, 'stack' => $e->getMessage()));
             $job->fail($e);
             return;
         }
 
         $job->updateStatus(Resque_Job_Status::STATUS_COMPLETE);
-        $this->logger->log(Psr\Log\LogLevel::NOTICE, '{job} has finished', array('job' => $job));
+        $this->logger->log(Psr\Log\LogLevel::INFO, '{job} has finished', array('job' => $job));
     }
 
     /**
@@ -276,7 +277,9 @@ class Resque_Worker
             }
         } else {
             foreach($queues as $queue) {
-                if($this->debug) $this->logger->log(Psr\Log\LogLevel::INFO, 'Checking {queue} for jobs', array('queue' => $queue));
+                if($this->debug) {
+                    $this->logger->log(Psr\Log\LogLevel::DEBUG, 'Checking {queue} for jobs', array('queue' => $queue));
+                }
                 $job = Resque_Job::reserve($queue);
                 if($job) {
                     $this->logger->log(Psr\Log\LogLevel::INFO, 'Found job on {queue}', array('queue' => $job->queue));
@@ -362,7 +365,7 @@ class Resque_Worker
         pcntl_signal(SIGUSR1, array($this, 'killChild'));
         pcntl_signal(SIGUSR2, array($this, 'pauseProcessing'));
         pcntl_signal(SIGCONT, array($this, 'unPauseProcessing'));
-        $this->logger->log(Psr\Log\LogLevel::DEBUG, 'Registered signals');
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'Registered signals');
     }
 
     /**
@@ -370,7 +373,7 @@ class Resque_Worker
      */
     public function pauseProcessing()
     {
-        $this->logger->log(Psr\Log\LogLevel::NOTICE, 'USR2 received; pausing job processing');
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'USR2 received; pausing job processing');
         $this->paused = true;
     }
 
@@ -380,7 +383,7 @@ class Resque_Worker
      */
     public function unPauseProcessing()
     {
-        $this->logger->log(Psr\Log\LogLevel::NOTICE, 'CONT received; resuming job processing');
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'CONT received; resuming job processing');
         $this->paused = false;
     }
 
@@ -390,8 +393,8 @@ class Resque_Worker
      */
     public function shutdown()
     {
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'Shutting down');
         $this->shutdown = true;
-        $this->logger->log(Psr\Log\LogLevel::NOTICE, 'Shutting down');
     }
 
     /**
@@ -400,6 +403,7 @@ class Resque_Worker
      */
     public function shutdownNow()
     {
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'Shutting down now');
         $this->shutdown();
         $this->killChild();
     }
@@ -411,7 +415,7 @@ class Resque_Worker
     public function killChild()
     {
         if(!$this->child) {
-            $this->logger->log(Psr\Log\LogLevel::DEBUG, 'No child to kill.');
+            $this->logger->log(Psr\Log\LogLevel::INFO, 'No child to kill.');
             return;
         }
 
