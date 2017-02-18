@@ -394,7 +394,7 @@ class Resque_Worker
      */
     public function shutdown()
     {
-        $this->logger->log(Psr\Log\LogLevel::INFO, 'Shutting down');
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'Shutting down queues[' . implode(',', $this->queues) . ']');
         $this->shutdown = true;
     }
 
@@ -404,7 +404,7 @@ class Resque_Worker
      */
     public function shutdownNow()
     {
-        $this->logger->log(Psr\Log\LogLevel::INFO, 'Shutting down now');
+        $this->logger->log(Psr\Log\LogLevel::INFO, 'Shutting down queues[' . implode(',', $this->queues) . ']');
         $this->shutdown();
         $this->killChild();
     }
